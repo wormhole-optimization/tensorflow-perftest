@@ -21,17 +21,18 @@ iter = 1;
 
 while( iter < max_iter ):
    # H = (H*(t(W)%*%(X/(W%*%H+eps)))) / t(colSums(W));
-   H_1 = tf.math.multiply(                       \
-             H,                                  \
-             tf.linalg.matmul(                   \
-                 tf.linalg.matrix_transpose(W),  \
-                 tf.math.divide(                 \
-                     X,                          \
-                     tf.math.add(                \
-                         tf.linalg.matmul(W, H), \
-                         eps))))
-   H_2 = tf.linalg.matrix_transpose(tf.math.reduce_sum(W, axis=1, keepdims=True))
-   H = tf.math.divide(H_1, H_2)
+   H = tf.math.divide(
+           tf.math.multiply(                       \
+               H,                                  \
+               tf.linalg.matmul(                   \
+                   tf.linalg.matrix_transpose(W),  \
+                   tf.math.divide(                 \
+                       X,                          \
+                       tf.math.add(                \
+                           tf.linalg.matmul(W, H), \
+                           eps)))),                \
+           tf.linalg.matrix_transpose(             \
+               tf.math.reduce_sum(W, axis=0, keepdims=True)))
 
    # W = (W*((X/(W%*%H+eps))%*%t(H))) / t(rowSums(H));
    W = tf.math.divide(                              \
@@ -45,7 +46,7 @@ while( iter < max_iter ):
                            eps)),                   \
                    tf.linalg.matrix_transpose(H))), \
            tf.linalg.matrix_transpose(              \
-               tf.math.reduce_sum(H, axis=0, keepdims=True)))
+               tf.math.reduce_sum(H, axis=1, keepdims=True)))
 
    # obj = sum(W%*%H) - sum(X*log(W%*%H+eps));
    obj = tf.math.subtract(                           \
@@ -63,6 +64,6 @@ while( iter < max_iter ):
    
    iter = iter + 1
 
-np.save(sys.argv[6], tf.make_ndarray(W))
-np.save(sys.argv[7], tf.make_ndarray(H))
+np.save(sys.argv[6], W.numpy())
+np.save(sys.argv[7], H.numpy())
 
